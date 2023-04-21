@@ -1,52 +1,75 @@
-#include <shell.h>
+#include "shell.h"
 
-
-#define BUFFER_SIZE 1024
-
-char *_getline(void)
+/**
+ **main - copies a string
+ *@dest: the destination string to be copied to
+ *@src: the source string
+ *@n: the amount of characters to be copied
+ *Return: the concatenated string
+ */
+char *main(char *dest, char *src, int n)
 {
-    static char buffer[BUFFER_SIZE];
-    static int buffer_pos = 0;
-    static int bytes_read = 0;
-    char *line = NULL;
-    int line_len = 0;
-    int i;
+	int i, j;
+	char *s = dest;
 
-    while (1) {
-        // If we've read all bytes in the buffer, read more bytes
-        if (buffer_pos >= bytes_read) {
-            bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
-            buffer_pos = 0;
-            if (bytes_read <= 0) {
-                // EOF or error
-                return line;
-            }
-        }
-
-        // Search for the newline character
-        for (i = buffer_pos; i < bytes_read; i++) {
-            if (buffer[i] == '\n') {
-                line_len += i - buffer_pos;
-                line = realloc(line, line_len + 1);
-                if (!line) {
-                    // Allocation error
-                    return NULL;
-                }
-                memcpy(line + line_len, buffer + buffer_pos, i - buffer_pos);
-                line[line_len + i - buffer_pos] = '\0';
-                buffer_pos = i + 1;
-                return line;
-            }
-        }
-
-        // If we didn't find a newline, add the bytes to the line buffer
-        line_len += bytes_read - buffer_pos;
-        line = realloc(line, line_len + 1);
-        if (!line) {
-            // Allocation error
-            return NULL;
-        }
-        memcpy(line + line_len - (bytes_read - buffer_pos), buffer + buffer_pos, bytes_read - buffer_pos);
-        buffer_pos = bytes_read;
-    }
+	i = 0;
+	while (src[i] != '\0' && i < n - 1)
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	if (i < n)
+	{
+		j = i;
+		while (j < n)
+		{
+			dest[j] = '\0';
+			j++;
+		}
+	}
+	return (s);
 }
+
+/**
+ **two_string - concatenates two strings
+ *@dest: the first string
+ *@src: the second string
+ *@n: the amount of bytes to be maximally used
+ *Return: the concatenated string
+ */
+char *two_string(char *dest, char *src, int n)
+{
+	int i, j;
+	char *s = dest;
+
+	i = 0;
+	j = 0;
+	while (dest[i] != '\0')
+		i++;
+	while (src[j] != '\0' && j < n)
+	{
+		dest[i] = src[j];
+		i++;
+		j++;
+	}
+	if (j < n)
+		dest[i] = '\0';
+	return (s);
+}
+
+/**
+ **locate_pointers - locates a character in a string
+ *@s: the string to be parsed
+ *@c: the character to look for
+ *Return: (s) a pointer to the memory area s
+ */
+char *locate_pointers(char *s, char c)
+{
+	do {
+		if (*s == c)
+			return (s);
+	} while (*s++ != '\0');
+
+	return (NULL);
+}
+
