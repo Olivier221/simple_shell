@@ -1,106 +1,115 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "shell.h"
 
-#define MAX_PATH_LENGTH 1024
-#define MAX_ARGS 64
-
-char *get_path(void)
+/**
+ * _shellhistory - history of my shell, one command by line, preceded
+ *              with line numbers, starting at 0.
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *  Return: Always 0
+ */
+int _shellhistory(info_t *info)
 {
-    char *path = getenv("PATH");
-    if (path == NULL) {
-        return NULL;
-    }
-
-    char *path_copy = strdup(path);
-    if (path_copy == NULL) {
-        return NULL;
-    }
-
-    return path_copy;
+	print_list(info->history);
+	return (0);
 }
 
-char **parse_args(char *input)
+/**
+ * string - sets alias to string
+ * @info: parameter struct
+ * @str: the string alias
+ *
+ * Return: Always 0 on success, 1 on error
+ */
+int string(info_t *info, char *str)
 {
-    char **args = malloc(sizeof(char*) * MAX_ARGS);
-    if (args == NULL) {
-        return NULL;
-    }
+	char *p, c;
+	int ret;
 
-    char *arg = strtok(input, " \t\n");
-    int i = 0;
-    while (arg != NULL && i < MAX_ARGS - 1) {
-        args[i] = arg;
-        arg = strtok(NULL, " \t\n");
-        i++;
-    }
-    args[i] = NULL;
-
-    return args;
+	p = _strchr(str, '=');
+	if (!p)
+		return (1);
+	c = *p;
+	*p = 0;
+	ret = delete_node_at_index(&(info->alias),
+		get_node_index(info->alias, node_starts_with(info->alias, str, -1)));
+	*p = c;
+	return (ret);
 }
 
-void execute_command(char **args, char *path)
+/**
+ * set_shellalias - sets alias to string
+ * @info: parameter struct
+ * @str: the string alias
+ *
+ * Return: Always 0 on success, 1 on error
+ */
+int set_shellalias(info_t *info, char *str)
 {
-    if (access(args[0], X_OK) == 0) {
-        execve(args[0], args, NULL);
-    } else {
-        char *dir = strtok(path, ":");
-        while (dir != NULL) {
-            char *full_path = malloc(MAX_PATH_LENGTH);
-            if (full_path == NULL) {
-                perror("malloc");
-                exit(EXIT_FAILURE);
-            }
-            snprintf(full_path, MAX_PATH_LENGTH, "%s/%s", dir, args[0]);
-            if (access(full_path, X_OK) == 0) {
-                execve(full_path, args, NULL);
-            }
-            free(full_path);
-            dir = strtok(NULL, ":");
-        }
-    }
+	char *p;
+
+	p = _strchr(str, '=');
+	if (!p)
+		return (1);
+	if (!*++p)
+		return (unset_alias(info, str));
+
+	unset_alias(info, str);
+	return (add_node_end(&(info->alias), str, 0) == NULL);
 }
 
-int main(void)
+/**
+ * print_aliasshell - prints an alias string
+ * @node: the alias node
+ *
+ * Return: Always 0 on success, 1 on error
+ */
+int print_aliasshell(list_t *node)
 {
-    char *path = get_path();
-    if (path == NULL) {
-        fprintf(stderr, "Error: PATH environment variable not found\n");
-        exit(EXIT_FAILURE);
-    }
+	char *p = NULL, *a = NULL;
 
-    char input[1024];
-    while (1) {
-        printf(":) ");
-        fflush(stdout);
+	if (node)
+	{
+		p = _strchr(node->str, '=');
+		for (a = node->str; a <= p; a++)
+			_putchar(*a);
+		_putchar('\'');
+		_puts(p + 1);
+		_puts("'\n");
+		return (0);
+	}
+	return (1);
+}
 
-        if (fgets(input, sizeof(input), stdin) == NULL) {
-            break;
-        }
+/**
+ * _myshell - mimics the alias builtin (man shell)
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ *  Return: Always 0
+ */
+int _myshell(info_t *info)
+{
+	int i = 0;
+	char *p = NULL;
+	list_t *node = NULL;
 
-        char **args = parse_args(input);
-        if (args == NULL) {
-            perror("malloc");
-            exit(EXIT_FAILURE);
-        }
+	if (info->argc == 1)
+	{
+		node = info->alias;
+		while (node)
+		{
+			print_alias(node);
+			node = node->next;
+		}
+		return (0);
+	}
+	for (i = 1; info->argv[i]; i++)
+	{
+		p = _strchr(info->argv[i], '=');
+		if (p)
+			set_alias(info, info->argv[i]);
+		else
+			print_alias(node_starts_with(info->alias, info->argv[i], '='));
+	}
 
-        pid_t pid = fork();
-        if (pid == -1) {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        } else if (pid == 0) {
-            execute_command(args, path);
-            fprintf(stderr, "Error: command not found\n");
-            exit(EXIT_FAILURE);
-        } else {
-            wait(NULL);
-            free(args);
-        }
-    }
-
-    free(path);
-    return 0;
+	return (0);
 }

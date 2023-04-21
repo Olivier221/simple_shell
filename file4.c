@@ -1,60 +1,86 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include "shell.h"
 
-#define MAX_BUFFER 1024
-#define MAX_ARGS 64
-
-int main(void)
+/**
+ *main - prints an input string
+ * @str: the string to be printed
+ *
+ * Return: Nothing
+ */
+void main(char *str)
 {
-    char buffer[MAX_BUFFER];
-    char *args[MAX_ARGS];
-    int status;
+	int i = 0;
 
-    while (1)
-    {
-        printf(":) ");
-        fgets(buffer, MAX_BUFFER, stdin);
-        buffer[strlen(buffer) - 1] = '\0';
-
-        if (strcmp(buffer, "exit") == 0) {
-            printf("Goodbye!\n");
-            exit(EXIT_SUCCESS);
-        }
-
-        pid_t pid = fork();
-
-        if (pid == -1)
-        {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        }
-
-        if (pid == 0)
-        {
-            // child process
-            int i = 0;
-            char *token = strtok(buffer, " ");
-            while (token != NULL)
-            {
-                args[i] = token;
-                token = strtok(NULL, " ");
-                i++;
-            }
-            args[i] = NULL;
-
-            execvp(args[0], args);
-
-            perror("execvp");
-            exit(EXIT_FAILURE);
-        }
-        else
-        {
-            // parent process
-            waitpid(pid, &status, 0);
-        }
-    }
-
-    return 0;
+	if (!str)
+		return;
+	while (str[i] != '\0')
+	{
+		_eputchar(str[i]);
+		i++;
+	}
 }
+
+/**
+ * eputchar - writes the character c to stderr
+ * @c: The character to print
+ *
+ * Return: On success 1.
+ * On error, -1 is returned, and errno is set appropriately.
+ */
+int eputchar(char c)
+{
+	static int i;
+	static char buf[WRITE_BUF_SIZE];
+
+	if (c == BUF_FLUSH || i >= WRITE_BUF_SIZE)
+	{
+		write(2, buf, i);
+		i = 0;
+	}
+	if (c != BUF_FLUSH)
+		buf[i++] = c;
+	return (1);
+}
+
+/**
+ * _bufsize - writes the character c to given fd
+ * @c: The character to print
+ * @fd: The filedescriptor to write to
+ *
+ * Return: On success 1.
+ * On error, -1 is returned, and errno is set appropriately.
+ */
+int _bufsize(char c, int fd)
+{
+	static int i;
+	static char buf[WRITE_BUF_SIZE];
+
+	if (c == BUF_FLUSH || i >= WRITE_BUF_SIZE)
+	{
+		write(fd, buf, i);
+		i = 0;
+	}
+	if (c != BUF_FLUSH)
+		buf[i++] = c;
+	return (1);
+}
+
+/**
+ *_putsinshell - prints an input string
+ * @str: the string to be printed
+ * @fd: the filedescriptor to write to
+ *
+ * Return: the number of chars put
+ */
+int _putsinshell(char *str, int fd)
+{
+	int i = 0;
+
+	if (!str)
+		return (0);
+	while (*str)
+	{
+		i += _putfd(*str++, fd);
+	}
+	return (i);
+}
+
