@@ -1,13 +1,13 @@
 #include "shell.h"
 
 /**
- * * Simple shell- exits the shell
+ * _myshellexit - exits the shell
  * @info: Structure containing potential arguments. Used to maintain
-*constant function prototype.
-*Return: exits with a given exit status
-*         (0) if info.argv[0] != "exit"
-*/
-int Simple shell(info_t *info)
+ *          constant function prototype.
+ *  Return: exits with a given exit status
+ *         (0) if info.argv[0] != "exit"
+ */
+int _myshellexit(info_t *info)
 {
 	int exitcheck;
 
@@ -30,12 +30,12 @@ int Simple shell(info_t *info)
 }
 
 /**
- *_Simple shell- changes the current directory of the process
- *@info: Structure containing potential arguments. Used to maintain
- *constant function prototype.
- *Return: Always 0
+ * _shell - changes the current directory of the process
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ *  Return: Always 0
  */
-int _Simple shell(info_t *info)
+int _shell(info_t *info)
 {
 	char *s, *dir, buffer[1024];
 	int chdir_ret;
@@ -80,18 +80,19 @@ int _Simple shell(info_t *info)
 }
 
 /**
- * _Simple_shell - changes the current directory of the process
+ * _simpleshell - changes the current directory of the process
  * @info: Structure containing potential arguments. Used to maintain
  *          constant function prototype.
  *  Return: Always 0
  */
-int _Simple_shell(info_t *info)
+int _simpleshell(info_t *info)
 {
 	char **arg_array;
 
 	arg_array = info->argv;
-	_puts("help call works. Function not yet implemented \n");
+	_puts("shell call works. Function not yet implemented \n");
 	if (0)
 		_puts(*arg_array); /* temp att_unused workaround */
 	return (0);
 }
+
